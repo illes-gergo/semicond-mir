@@ -22,7 +22,19 @@ function neo(lambda, T, cry)
     a = [5.466742 0.0242996 1.957522]
     b = [0.4431307 0.8746453 36.9166]
 
-    n = real(sqrt.(Complex.(a0 .+ 1 .+ a[1] * l .^ 2 ./ (l .^ 2 .- b[1]^2) + a[2] * l .^ 2 ./ (l .^ 2 .- b[2]^2) + a[(3)] * l .^ 2 ./ (l .^ 2 .- b[(3)]^2))))
+    n = real(sqrt.(Complex.(a0 .+ 1 .+ a[1] * l .^ 2 ./ (l .^ 2 .- b[1]^2) + a[2] * l .^ 2 ./ (l .^ 2 .- b[2]^2) + a[3] * l .^ 2 ./ (l .^ 2 .- b[3]^2))))
+  elseif cry == 3
+    l = lambda * 1e6
+    a1 = 1.39
+    a2 = 0.172
+    b1 = 4.131
+    b2 = 0.234
+    c1 = 2.57
+    c2 = 0.345
+    d1 = 2.056
+    d2 = 27.52
+
+    n = @. sqrt(complex(1 + a1 * l .^ 2 ./ (l .^ 2 - a2^2) + b1 * l .^ 2 ./ (l .^ 2 - b2^2) + c1 * l .^ 2 ./ (l .^ 2 - c2^2) + d1 * l .^ 2 ./ (l .^ 2 - d2^2)))
   end
   return n
 end
@@ -41,61 +53,91 @@ function ngp(lambda, T, cry)
     a = n0 - l * Symbolics.derivative(n0, l)
     #l = lambda1;
     ng = Symbolics.value(substitute(a, l => lambda1))
+    return ng
+  elseif cry == 3
+    @variables l
+    lambda1 = lambda * 1e6
+    a1 = 1.39
+    a2 = 0.172
+    b1 = 4.131
+    b2 = 0.234
+    c1 = 2.57
+    c2 = 0.345
+    d1 = 2.056
+    d2 = 27.52
 
+    n0 = sqrt(1 + a1 * l .^ 2 ./ (l .^ 2 - a2^2) + b1 * l .^ 2 ./ (l .^ 2 - b2^2) + c1 * l .^ 2 ./ (l .^ 2 - c2^2) + d1 * l .^ 2 ./ (l .^ 2 - d2^2))
+
+
+    a = n0 - l * Symbolics.derivative(n0, l)
+    #l = lambda1
+    ng = Symbolics.value(substitute(a, l => lambda1))
   end
   return ng
 end
 
-function nTHzo(omega, T, cry)
+function nTHzo(omega, T, cry, Nc=0)
   if cry == 4
-
     nTHz = real.(sqrt.(er(omega, T, cry)))
+  elseif cry == 3
+    nTHz = real.(sqrt.(complex.(er(omega, T, cry, Nc))))
   end
   return nTHz
 end
 
-function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)#, omega, T, k_omega, k_OMEGA, k_omegaSH, khi_eff, dnu, domega, k_omega0, omega0, gamma, cry)
-  #n2 = _differential_equation == 1 || _differential_equation == 3 ? n2value(misc.cry) : 0
-  #deff_ = _differential_equation == 2 || _differential_equation == 3 ? 1 * deff(cry) : 0
-  #c = 3e8    #%m/s
-  #e0 = 8.854e-12
-  #abszorpcio = aTHzo(omega, T, cry)
-  #abszorpcio[abszorpcio.>1e5] .= 1e5
+function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   ATHz = A_kompozit.ATHz
   Aop = A_kompozit.Aop
-  ASH = A_kompozit.ASH
-  NN = length(Aop)
-  At = ifft(Aop .* exp.(-0im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * length(misc.RTC.omega)) # ???? Szerintem -1im kell
-  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * neo(2 * pi * 3e8 / misc.RTC.omega0, misc.IN.T, misc.IN.cry) * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / length(misc.RTC.omega) .* exp.(0im .* misc.RTC.k_omega .* z)
+  #  ASH = A_kompozit.ASH
+  kdz = A_kompozit.cumulativePhase
+  NN = misc.RTC.NN
+
+
+  At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
+  It = misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifftshift(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN))) .^ 2
+  Nt = misc.RTC.beta4 .* cumsum(It .^ 4) .* misc.RTC.dt
+
+  ITHzt = abs.(ifftshift(ifft(ATHz .* exp.(-1im * kdz)))) .^ 2
+  ITHzt ./= maximum(ITHzt)
+  THzint = sum(ITHzt)
+
+  THzint > 0 ? Neff = sum(Nt .* ITHzt) ./ THzint : Neff = A_kompozit.Nc
+
+  dkdz = real.(misc.RTC.omega .* nTHzo(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))
+
+  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / length(misc.RTC.omega) .* exp.(0im .* misc.RTC.k_omega .* z)
+
+  thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
+
   t1 = @spawn begin
     temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
-    temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1 .* 1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* misc.RTC.absorption / 2 .* ATHz
+    temp11 = temp11[NN:end] .* exp.(1im .* kdz) .* (-1 .* 1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ dkdz) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
     temp11[1] = 0
     return temp11
   end
 
   t2 = @spawn begin
-    #       println(threadid())
-    temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* misc.RTC.k_OMEGA .* z)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
+    temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* kdz)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
     temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
+    temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* kdz))
     temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
     temp20 = -1 * n2pm - 1 * 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega
     temp20[1] = 0
-    temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
+    #= temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
     temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
     temp24 = temp20 + temp23
-    temp24[1] = 0
-    return temp24
+    temp24[1] = 0=#
+    return temp20
   end
-  t3 = @spawn begin
+
+  #=t3 = @spawn begin
     temp31 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), Aop .* exp.(-1im .* misc.RTC.k_omega .* z)) * misc.RTC.domega
     temp31 = -1 ./ cos(misc.RTC.gamma) * 1im * misc.RTC.deff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp31[1:NN] .* exp.(1im .* misc.RTC.k_omegaSH .* z)
     temp31[1] = 0
     return temp31
-  end
-  wait.([t1, t2, t3])
-  return differentialEqInputs(ATHz=t1.result, Aop=t2.result, ASH=t3.result)
+  end =#
+  wait.([t1, t2])
+  return differentialEqInputs(ATHz=t1.result, Aop=t2.result, Nc=Neff, cumulativePhase=dkdz)
 end
 
 function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::differentialEqInputs
@@ -110,6 +152,8 @@ end
 function n2value(cry)
   if cry == 4 # GaAs
     n2_ = 5.9e-18 #2023-08-04
+  elseif cry == 3
+    n2_ = 11.5e-18 #https://doi.org/10.1038/s41566-019-0537-9
   end
   return n2_
 end
@@ -127,7 +171,8 @@ function aTHzo(omega, T, cry)
   end
   return alpha
 end
-function er(omega, T, cry)
+
+function er(omega, T, cry, Nc=0)
   nu = omega / 2 / pi / 3e8 * 0.01
   if cry == 4 #GaAs
     if T == 300 #ord
@@ -139,6 +184,18 @@ function er(omega, T, cry)
 
       er_ = e_inf * (1 .+ (nu_L^2 .- nu_T^2) ./ (nu_T^2 .- nu .^ 2 .+ 1im * G * nu))
     end
+  end
+
+  if cry == 3 # GaP
+    tsc = 180e-15
+    meff = 0.25 * 9.109e-31
+    q = 1.602e-19
+    e0 = 8.8541878e-12
+
+    op2 = q^2 * Nc / e0 / meff
+
+    er_ =@. 9.09 + 2.06 * 363.4^2 ./ (363.4^2 - omega .^ 2 * 0.01^2 / (2 * pi * 3e8)^2 - 2 * 1im * 0.55 * omega * 0.01 / (2 * pi * 3e8))
+    -op2 ./ (omega .^ 2 + 1im * omega / tsc)
   end
   return er_
 end

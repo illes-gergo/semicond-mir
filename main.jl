@@ -15,7 +15,7 @@ function runcalc()
   T = inputs.T
   c = natConsts.c0
   lambda0 = inputs.lambda0
-  N = 4e4
+  N::Int = 4e4
   tau = inputs.tau
   I0 = inputs.I0
   khi_eff = 2 * deffTHz(cry)
@@ -63,14 +63,12 @@ function runcalc()
 
   ddk_omega = -ngp0 .^ 2 / omega0 / c / np0 * tan(gamma)^2
   k_omega = real(1 / cos(gamma) .* (omega .* n_omega / c + 1 * (omega .- omega0) .^ 2 / 2 .* ddk_omega))
-  # + 1e5;
   ddk_omegaSH = -ngpSH .^ 2 / omega0 / 2 / c / npSH * tan(gamma)^2
   k_omegaSH = real(1 / cos(gamma) .* (omega .* n_omega / c + 1 * (omega .- 2 * omega0) .^ 2 / 2 .* ddk_omegaSH))
-  # + 1e5;
   k_omega0 = real.(1 ./ cos(gamma) .* (omega .* ngp0 / c))
   k_omegaSH0 = real.(1 ./ cos(gamma) .* (omega .* ngpSH / c))
 
-  A0 = sqrt(2 * I0 / neo(lambda0, T, cry) / e0 / c) * tau / (2 * sqrt(2 * pi * log(2)))
+  # A0 = sqrt(2 * I0 / neo(lambda0, T, cry) / e0 / c) * tau / (2 * sqrt(2 * pi * log(2)))
 
   Aot = A0t * exp.(-2 * log(2) * t .^ 2 / tau^2) .* exp.(1im * omega0 * t)
   Aop = fft(Aot) .* exp.(1im * (k_omega - k_omega0) * elochirp) * dt / 2 / pi
@@ -84,30 +82,31 @@ function runcalc()
   FI = 4 * nTHz .^ 2 ./ (1 + nTHz) .^ 2
   FA = 2 * nTHz ./ (1 + nTHz)
 
-  A_komp = differentialEqInputs(ATHz, Aop0, ASH)
+  A_komp::differentialEqInputs = differentialEqInputs(Aop=Aop, ATHz=ATHz, cumulativePhase=zeros(N), Nc=0)
 
   effic = zeros(size(z))
   efficSH = zeros(size(effic))
   n2 = n2value(cry)
-  RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=deff(cry), n2=n2,
+  RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=0, n2=n2, #=deff(cry)=#
     omega=omega,
     omega0=omega0, domega=domega, k_omega=k_omega,
-    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu,
-    absorption=aTHzo(omega, T, cry))
+    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt)
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
   #FID = h5open(inputs.DB_Name, "w")
+
   for ii in eachindex(z)[2:end]
     A_komp = RK4_M(diffegy_conv, dz, z[ii-1], A_komp, misc)
     ATHz = A_komp.ATHz
     Aop = A_komp.Aop
-    ASH = A_komp.ASH
+    #    ASH = A_komp.ASH
+    kdz = A_komp.cumulativePhase
     effic[ii] = sum(abs.(ATHz) .^ 2 .* FI) / pF
     efficSH[ii] = sum(abs.(ASH) .^ 2 .* npSH) / pF
 
     Iop = np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2
-    ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * (k_OMEGA - k_OMEGA0) * z[ii])))) * omegaMAX
-    ISH = abs.((ifft(ASH .* exp.(-1im * (k_omegaSH - k_omegaSH0) * z[ii]))) * omegaMAX) .^ 2
+    ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((k_OMEGA - k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
+    #    ISH = abs.((ifft(ASH .* exp.(-1im * (k_omegaSH - k_omegaSH0) * z[ii]))) * omegaMAX) .^ 2
     #DataBaseWriter(FID, z[ii], Aop, Iop, ATHz, ETHz, ASH, ISH)
     println(ii)
   end
