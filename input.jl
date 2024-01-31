@@ -3,10 +3,10 @@ include("typedefs.jl")
 
 function setInput()::userInputs
   lambda0 = 1.0e-6
-  tau = 2e-12
+  tau = 0.5e-12
   I0 = 80e13
   dz = 5e-6
-  nu0 = 1.5e12
+  nu0 = 0.5e12
   z_end = 10e-3
   DB_name = "DB"
   differential_equation = 3 # 4 = multiphoton, 2 = shg, 1 = n2

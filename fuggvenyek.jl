@@ -94,18 +94,19 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
 
 
   At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
-  It = misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifftshift(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN))) .^ 2
-  Nt = misc.RTC.beta4 .* cumsum(It .^ 4) .* misc.RTC.dt
+  It = misc.NC.e0 / 2 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifftshift(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN))) .^ 2
+
+  Nt = misc.RTC.beta4 .* cumsum(It .^ 4) .* misc.RTC.dt / 4 / misc.NC.hv / misc.RTC.omega0
 
   ITHzt = abs.(ifftshift(ifft(ATHz .* exp.(-1im * kdz)))) .^ 2
   ITHzt ./= maximum(ITHzt)
   THzint = sum(ITHzt)
 
-  THzint > 0 ? Neff = sum(Nt .* ITHzt) ./ THzint : Neff = A_kompozit.Nc
+  THzint > 0 ? Neff = sum(Nt .* ITHzt) ./ THzint : Neff = 0
 
-  dkdz = real.(misc.RTC.omega .* nTHzo(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))
+  dkdz = real.(misc.RTC.omega .* nTHzo(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff)) / misc.NC.c0
 
-  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / length(misc.RTC.omega) .* exp.(0im .* misc.RTC.k_omega .* z)
+  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / length(misc.RTC.omega)
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
 
