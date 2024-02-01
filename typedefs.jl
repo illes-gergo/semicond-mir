@@ -11,6 +11,7 @@ import Base.+, Base.*, Base./
   DifferentialEquationSum::Int
   cry::Int
   T::Float64
+  N::Int=4e4
 end
 
 @kwdef struct differentialEqInputs

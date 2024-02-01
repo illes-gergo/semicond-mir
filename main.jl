@@ -7,6 +7,7 @@ using HDF5
 include("fuggvenyek.jl")
 include("typedefs.jl")
 include("input.jl")
+include("datafuncs.jl")
 
 function runcalc()
   inputs = setInput()
@@ -15,7 +16,7 @@ function runcalc()
   T = inputs.T
   c = natConsts.c0
   lambda0 = inputs.lambda0
-  N::Int = 4e4
+  N::Int = inputs.N # 4e4 by default
   tau = inputs.tau
   I0 = inputs.I0
   khi_eff = 2 * deffTHz(cry)
@@ -117,3 +118,5 @@ function runcalc()
   println("Végeztem!")
   return nothing
 end
+
+printInputs2Console(setInput())
