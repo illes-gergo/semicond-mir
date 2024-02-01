@@ -22,10 +22,11 @@ function runcalc()
   khi_eff = 2 * deffTHz(cry)
   e0 = natConsts.e0
   nu0 = 0.5e12
-
   dz = inputs.dz
   z_vegso = inputs.z_end
   z = 0:dz:z_vegso
+  saveInterval = 0.1e-3
+  zsave = 0:saveInterval:z_vegso
   omega0 = 2 * pi * c / lambda0
 
   elochirp = 0 * 1 * z_vegso / 2
@@ -95,21 +96,25 @@ function runcalc()
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
   #FID = h5open(inputs.DB_Name, "w")
+  saveCounter = 1
+  for ii in eachindex(z)[1:end-1]
+    A_komp = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
+    if zsave[saveCounter] == z[ii]
+      ATHz = A_komp.ATHz
+      Aop = A_komp.Aop
+      #    ASH = A_komp.ASH
+      kdz = A_komp.cumulativePhase
+      effic[ii] = sum(abs.(ATHz) .^ 2 .* FI) / pF
+      efficSH[ii] = sum(abs.(ASH) .^ 2 .* npSH) / pF
 
-  for ii in eachindex(z)[2:end]
-    A_komp = RK4_M(diffegy_conv, dz, z[ii-1], A_komp, misc)
-    ATHz = A_komp.ATHz
-    Aop = A_komp.Aop
-    #    ASH = A_komp.ASH
-    kdz = A_komp.cumulativePhase
-    effic[ii] = sum(abs.(ATHz) .^ 2 .* FI) / pF
-    efficSH[ii] = sum(abs.(ASH) .^ 2 .* npSH) / pF
-
-    Iop = np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2
-    ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((k_OMEGA - k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
-    #    ISH = abs.((ifft(ASH .* exp.(-1im * (k_omegaSH - k_omegaSH0) * z[ii]))) * omegaMAX) .^ 2
-    #DataBaseWriter(FID, z[ii], Aop, Iop, ATHz, ETHz, ASH, ISH)
-    println(ii)
+      Iop = np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2
+      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((k_OMEGA - k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
+      #    ISH = abs.((ifft(ASH .* exp.(-1im * (k_omegaSH - k_omegaSH0) * z[ii]))) * omegaMAX) .^ 2
+      #DataBaseWriter(FID, z[ii], Aop, Iop, ATHz, ETHz, ASH, ISH)
+      saveCounter += 1
+    end
+    print("$(ii) / $(length(z)) \r")
+    flush(stdout)
   end
   #DataBaseEnder(FID, z, t, nu, effic, efficSH)
   #close(FID)
