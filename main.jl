@@ -95,22 +95,21 @@ function runcalc()
     k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt)
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
-  #FID = h5open(inputs.DB_Name, "w")
-  saveCounter = 1
-  for ii in eachindex(z)[1:end-1]
+  NcArray = zeros(length(z))
+  FID = h5open(inputs.DB_Name, "w")
+  saveCounter::Int = 1
+  for ii in eachindex(z)[2:end]
     A_komp = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
-    if zsave[saveCounter] == z[ii]
+    effic[ii] = sum(abs.(A_komp.ATHz) .^ 2 .* FI) / pF
+    NcArray[ii] = A_komp.Nc
+    if zsave[saveCounter] == z[ii-1] || ii == length(z)
       ATHz = A_komp.ATHz
       Aop = A_komp.Aop
-      #    ASH = A_komp.ASH
       kdz = A_komp.cumulativePhase
-      effic[ii] = sum(abs.(ATHz) .^ 2 .* FI) / pF
-      efficSH[ii] = sum(abs.(ASH) .^ 2 .* npSH) / pF
 
       Iop = np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2
-      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((k_OMEGA - k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
-      #    ISH = abs.((ifft(ASH .* exp.(-1im * (k_omegaSH - k_omegaSH0) * z[ii]))) * omegaMAX) .^ 2
-      #DataBaseWriter(FID, z[ii], Aop, Iop, ATHz, ETHz, ASH, ISH)
+      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((- k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
+      DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
       saveCounter += 1
     end
     print("$(ii) / $(length(z)) \r")

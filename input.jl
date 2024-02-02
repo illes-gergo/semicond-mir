@@ -7,7 +7,7 @@ function setInput()::userInputs
   I0 = 80e13
   dz = 5e-6
   nu0 = 0.5e12
-  z_end = 10e-3
+  z_end = 1e-3
   DB_name = "DB"
   differential_equation = 3 # 4 = multiphoton, 2 = shg, 1 = n2
   cry = 3

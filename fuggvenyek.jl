@@ -201,20 +201,18 @@ function er(omega, T, cry, Nc=0)
   return er_
 end
 
-function DataBaseWriter(FID, z, Aop, Iop, ATHz, ETHz, ASH, ISH)
-  FID[string(Int(round(z * 1e6)))*"/Aop"] = collect(abs.(Aop))
-  FID[string(Int(round(z * 1e6)))*"/Eop"] = collect(Iop)
-  FID[string(Int(round(z * 1e6)))*"/ATHz"] = collect(abs.(ATHz))
-  FID[string(Int(round(z * 1e6)))*"/ETHz"] = collect(ETHz)
-  FID[string(Int(round(z * 1e6)))*"/ASH"] = collect(abs.(ASH))
-  FID[string(Int(round(z * 1e6)))*"/ESH"] = collect(ISH)
+function DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
+  FID[string(saveCounter)*"/Aop"] = collect(abs.(Aop))
+  FID[string(saveCounter)*"/Eop"] = collect(Iop)
+  FID[string(saveCounter)*"/ATHz"] = collect(abs.(ATHz))
+  FID[string(saveCounter)*"/ETHz"] = collect(ETHz)
 end
 
-function DataBaseEnder(FID, z, t, nu, effic, efficSH)
-  FID["z"] = collect(transpose(z))
-  FID["effic"] = collect(transpose(effic))
-  FID["efficSH"] = collect(transpose(efficSH))
-  FID["t"] = collect(transpose(t))
-  FID["nu"] = collect(transpose(nu))
+function DataBaseEnder(FID, z, t, nu, effic, Nc)
+  FID["z"] = collect((z))
+  FID["effic"] = collect((effic))
+  FID["Nc"] = collect((Nc))
+  FID["t"] = collect((t))
+  FID["nu"] = collect((nu))
 end
 
