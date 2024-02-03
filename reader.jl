@@ -146,7 +146,7 @@ function exportPmpSpct(zval, file)
   DB_Name = read(file["DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/pump_spectrum-$(zselect)mm.txt".[nu;; spct])
+  writedlm(DB_Name * "/pump_spectrum-$(zselect)mm.txt",[nu;; spct])
   return nothing
 end
 
@@ -157,7 +157,7 @@ function exportTHzSpct(zval, file)
   DB_Name = read(file["DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/thz_spectrum-$(zselect)mm.txt".[nu;; spct])
+  writedlm(DB_Name * "/thz_spectrum-$(zselect)mm.txt",[nu;; spct])
   return nothing
 end
 function exportTHzField(zval, file)
@@ -167,7 +167,7 @@ function exportTHzField(zval, file)
   DB_Name = read(file["DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/thz_field-$(zselect)mm.txt".[t;; field])
+  writedlm(DB_Name * "/thz_field-$(zselect)mm.txt",[t;; field])
   return nothing
 end
 
@@ -178,7 +178,7 @@ function exportPmpInt(zval, file)
   DB_Name = read(file["DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/pump_intensity-$(zselect)mm.txt".[t;; field])
+  writedlm(DB_Name * "/pump_intensity-$(zselect)mm.txt",[t;; field])
   return nothing
 end
 
