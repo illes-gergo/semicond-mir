@@ -1,4 +1,4 @@
-using HDF5, PlotlyJS
+using HDF5, PlotlyJS, DelimitedFiles
 
 include("plotLayouts.jl")
 
@@ -13,6 +13,7 @@ function printInputs2Console(file)
   outstring *= "Intenzitás félértékszélesség: $(read(file["inp/tau"])*1e12) ps\n"
   outstring *= "Csúcsintenzitás: $(read(file["inp/I0"])*1e-13) GW/cm^2\n"
   outstring *= "Sebességillesztési frekvencia: $(read(file["inp/nu0"])*1e-12) THz\n"
+  outstring *= "Sebességillesztés szöge: $(read(file["gamma"]))\n"
   outstring *= "Kristály teljes hossza: $(read(file["inp/z_end"])*1e3) mm\n"
   matchoice = read(file["/inp/cry"])
   if matchoice == 3
@@ -48,7 +49,7 @@ end
 function findnearest(zsave::Vector, value::Number)
   workArray = abs.(zsave .- value)
   _, index = findmin(workArray)
-  println("$(zsave[index]*1e3) mm kristályhosst kiválasztva")
+  println("$(zsave[index]*1e3) mm kristályhossz kiválasztva")
   return index
 end
 
@@ -77,6 +78,13 @@ function pltPmpInt(zval, file)
   t = read(file["t"]) * 1e12
   field = read(file["$(idx)/Eop"]) * 1e-13
   return plot(scatter(x=t, y=field), merge(lout_general, lout_pmp))
+end
+
+function exportEffic(file)
+  z = read(file["z"])*1e3
+  effic = read(file["effic"]) * 100
+  DB_Name = read(file["inp/DB_Name"])
+  writedlm(DB_Name*"/effic.txt",[z;;effic])
 end
 
 function Dummy(file)
