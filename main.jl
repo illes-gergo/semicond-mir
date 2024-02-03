@@ -25,13 +25,13 @@ function runcalc()
   dz = inputs.dz
   z_vegso = inputs.z_end
   z = 0:dz:z_vegso
-  saveInterval = 0.1e-3
+  saveInterval = 1.0e-4
   zsave = 0:saveInterval:z_vegso
   omega0 = 2 * pi * c / lambda0
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 5 * 2 * omega0
+  omegaMAX = 1.5 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt
@@ -43,7 +43,6 @@ function runcalc()
   omega = (0:N-1) * domega
   nu = omega / 2 / pi
 
-  deltaOmega = 2 * sqrt(2 * log(2)) / tau
 
   lambda = 2 * pi * c ./ omega
   lambda[1] = lambda[2]
@@ -53,7 +52,6 @@ function runcalc()
   npSH = neo(lambda0 / 2, T, cry)
 
   nTHz = nTHzo(2 * pi * nu0, T, cry)
-  vfTHz = c ./ nTHz
 
   gamma = acos.(ngp0 / nTHz)
 
@@ -68,16 +66,12 @@ function runcalc()
   ddk_omegaSH = -ngpSH .^ 2 / omega0 / 2 / c / npSH * tan(gamma)^2
   k_omegaSH = real(1 / cos(gamma) .* (omega .* n_omega / c + 1 * (omega .- 2 * omega0) .^ 2 / 2 .* ddk_omegaSH))
   k_omega0 = real.(1 ./ cos(gamma) .* (omega .* ngp0 / c))
-  k_omegaSH0 = real.(1 ./ cos(gamma) .* (omega .* ngpSH / c))
 
-  # A0 = sqrt(2 * I0 / neo(lambda0, T, cry) / e0 / c) * tau / (2 * sqrt(2 * pi * log(2)))
 
   Aot = A0t * exp.(-2 * log(2) * t .^ 2 / tau^2) .* exp.(1im * omega0 * t)
   Aop = fft(Aot) .* exp.(1im * (k_omega - k_omega0) * elochirp) * dt / 2 / pi
-  Aop0 = copy(Aop)
 
   ATHz = zeros(size(Aop))
-  ASH = zeros(size(Aop))
 
   pF = sum(abs.(Aop) .^ 2) * np0
 
@@ -107,16 +101,16 @@ function runcalc()
       Aop = A_komp.Aop
       kdz = A_komp.cumulativePhase
 
-      Iop = np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2
-      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((- k_OMEGA0) * z[ii]) .+ kdz)))) * omegaMAX
+      Iop = real.(np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2)
+      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((-k_OMEGA0) * z[ii]) .- kdz)))) * omegaMAX
       DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
       saveCounter += 1
     end
     print("$(ii) / $(length(z)) \r")
     flush(stdout)
   end
-  #DataBaseEnder(FID, z, t, nu, effic, efficSH)
-  #close(FID)
+  DataBaseEnder(FID, z, t, nu, effic, NcArray, inputs, zsave)
+  close(FID)
 
   #display(plot(z, effic))
   println("Végeztem!")
