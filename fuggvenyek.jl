@@ -6,7 +6,7 @@ function deffTHz(cry)
   elseif cry == 2 # ZnTe
     deff_ = 0
   elseif cry == 3 # GaP
-    deff_ = 0
+    deff_ = 24.8e-12 #/5.33333*5.068
   elseif cry == 4 # GaAs
     deff_ = 2 / sqrt(3) * 86.5e-12 #2023-08-04
   elseif cry == 7 # ZnSe
@@ -23,6 +23,7 @@ function neo(lambda, T, cry)
     b = [0.4431307 0.8746453 36.9166]
 
     n = real(sqrt.(Complex.(a0 .+ 1 .+ a[1] * l .^ 2 ./ (l .^ 2 .- b[1]^2) + a[2] * l .^ 2 ./ (l .^ 2 .- b[2]^2) + a[3] * l .^ 2 ./ (l .^ 2 .- b[3]^2))))
+
   elseif cry == 3
     l = lambda * 1e6
     a1 = 1.39
@@ -94,11 +95,11 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
 
 
   At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
-  It = misc.NC.e0 / 2 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifftshift(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN))) .^ 2
+  It = misc.NC.e0 / 2 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN)) .^ 2
 
   Nt = misc.RTC.beta4 .* cumsum(It .^ 4) .* misc.RTC.dt / 4 / misc.NC.hv / misc.RTC.omega0
 
-  ITHzt = abs.(ifftshift(ifft(ATHz .* exp.(-1im * kdz)))) .^ 2
+  ITHzt = abs.(ifft(ATHz .* exp.(-1im * kdz))) .^ 2
   ITHzt ./= maximum(ITHzt)
   THzint = sum(ITHzt)
 
@@ -106,13 +107,14 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
 
   dkdz = real.(misc.RTC.omega .* nTHzo(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff)) / misc.NC.c0
 
-  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / length(misc.RTC.omega)
+  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
+  thzAbsorption[thzAbsorption .> 1e5] .= 0
 
   t1 = @spawn begin
     temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
-    temp11 = temp11[NN:end] .* exp.(1im .* kdz) .* (-1 .* 1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ dkdz) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+    temp11 = temp11[NN:end] .* exp.(1im .* kdz) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ dkdz) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
     temp11[1] = 0
     return temp11
   end
@@ -185,9 +187,8 @@ function er(omega, T, cry, Nc=0)
 
       er_ = e_inf * (1 .+ (nu_L^2 .- nu_T^2) ./ (nu_T^2 .- nu .^ 2 .+ 1im * G * nu))
     end
-  end
 
-  if cry == 3 # GaP
+  elseif cry == 3 # GaP
     tsc = 180e-15
     meff = 0.25 * 9.109e-31
     q = 1.602e-19
@@ -208,11 +209,26 @@ function DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
   FID[string(saveCounter)*"/ETHz"] = collect(ETHz)
 end
 
-function DataBaseEnder(FID, z, t, nu, effic, Nc)
+function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave)
   FID["z"] = collect((z))
   FID["effic"] = collect((effic))
   FID["Nc"] = collect((Nc))
   FID["t"] = collect((t))
   FID["nu"] = collect((nu))
+  FID["zsave"] = collect((zsave))
+
+  # Saving user's inputs for extra data
+  
+  FID["inp/lambda0"] = collect(inp.lambda0)
+  FID["inp/tau"] = collect(inp.tau)
+  FID["inp/I0"] = collect(inp.I0)
+  FID["inp/dz"] = collect(inp.dz)
+  FID["inp/nu0"] = collect(inp.nu0)
+  FID["inp/z_end"] = collect(inp.z_end)
+  FID["inp/DB_Name"] = (inp.DB_Name)
+  FID["inp/DifferentialEquationSum"] = collect(inp.DifferentialEquationSum)
+  FID["inp/cry"] = collect(inp.cry)
+  FID["inp/T"] = collect(inp.T)
+  FID["inp/N"] = collect(inp.N)
 end
 
