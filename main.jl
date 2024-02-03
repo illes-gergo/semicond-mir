@@ -31,7 +31,7 @@ function runcalc()
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 1.5 * omega0
+  omegaMAX = 3.0 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt
@@ -109,7 +109,7 @@ function runcalc()
     print("$(ii) / $(length(z)) \r")
     flush(stdout)
   end
-  DataBaseEnder(FID, z, t, nu, effic, NcArray, inputs, zsave)
+  DataBaseEnder(FID, z, t, nu, effic, NcArray, inputs, zsave, gamma)
   close(FID)
 
   #display(plot(z, effic))

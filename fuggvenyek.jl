@@ -209,13 +209,14 @@ function DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
   FID[string(saveCounter)*"/ETHz"] = collect(ETHz)
 end
 
-function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave)
+function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave, gamma)
   FID["z"] = collect((z))
   FID["effic"] = collect((effic))
   FID["Nc"] = collect((Nc))
   FID["t"] = collect((t))
   FID["nu"] = collect((nu))
   FID["zsave"] = collect((zsave))
+  FID["gamma"] = collect((gamma))
 
   # Saving user's inputs for extra data
   
