@@ -121,7 +121,7 @@ function exportEfficiency(file)
   effic = read(file["effic"]) * 100
   DB_Name = read(file["inp/DB_Name"]) * "-exports"
   checkpath(DB_Name)
-  writedlm(DB_Name * "-exports/effic.txt", [z;; effic])
+  writedlm(DB_Name * "/effic.txt", [z;; effic])
   return nothing
 end
 
@@ -130,7 +130,7 @@ function exportCarriers(file)
   Nc = read(file["Nc"])
   DB_Name = read(file["inp/DB_Name"]) * "-exports"
   checkpath(DB_Name)
-  writedlm(DB_Name * "-exports/Nc.txt", [z;; Nc])
+  writedlm(DB_Name * "/Nc.txt", [z;; Nc])
   return nothing
 end
 
