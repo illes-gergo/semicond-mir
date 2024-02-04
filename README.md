@@ -38,3 +38,29 @@ sim = readData("DB-name")
 ```
 Ez után a ```sim``` objektummal interaktálva elvégezhetjük az adatok kiértékelését.
 Példa:
+```
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.10.0 (2023-12-25)
+ _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
+|__/                   |
+
+julia> include("reader.jl");
+
+julia> sim = readData("DB-500fs-2um");
+
+julia> sim.exportEffic()
+
+julia> sim.plotEffic()
+[ Info: Listening on: 127.0.0.1:9321, thread id: 2
+
+julia> sim.plotTHzField(1.3)
+1.3 mm kristályhossz kiválasztva
+
+julia> sim.plotTHzSpect(1.3)
+1.3 mm kristályhossz kiválasztva
+```
+![Képernyőkép 2024-02-04 121847](https://github.com/illes-gergo/semicond-mir/assets/79720047/5dae1d19-7faf-48aa-99fa-5f9117fc8d57)
