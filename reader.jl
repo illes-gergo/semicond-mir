@@ -121,7 +121,7 @@ function exportEfficiency(file)
   effic = read(file["effic"]) * 100
   DB_Name = read(file["inp/DB_Name"]) * "-exports"
   checkpath(DB_Name)
-  writedlm(DB_Name * "/effic.txt", [z;; effic])
+  writedlm(DB_Name * "-exports/effic.txt", [z;; effic])
   return nothing
 end
 
@@ -130,7 +130,7 @@ function exportCarriers(file)
   Nc = read(file["Nc"])
   DB_Name = read(file["inp/DB_Name"]) * "-exports"
   checkpath(DB_Name)
-  writedlm(DB_Name * "/Nc.txt", [z;; Nc])
+  writedlm(DB_Name * "-exports/Nc.txt", [z;; Nc])
   return nothing
 end
 
@@ -143,10 +143,10 @@ function exportPmpSpct(zval, file)
   idx = findnearest(read(file["zsave"]), zval)
   nu = read(file["nu"]) * 1e-12
   spct = read(file["$(idx)/Aop"])
-  DB_Name = read(file["DB_Name"])
+  DB_Name = read(file["inp/DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/pump_spectrum-$(zselect)mm.txt",[nu;; spct])
+  writedlm(DB_Name * "-exports/pump_spectrum-$(zselect)mm.txt", [nu;; spct])
   return nothing
 end
 
@@ -154,20 +154,20 @@ function exportTHzSpct(zval, file)
   idx = findnearest(read(file["zsave"]), zval)
   nu = read(file["nu"]) * 1e-12
   spct = read(file["$(idx)/ATHz"])
-  DB_Name = read(file["DB_Name"])
+  DB_Name = read(file["inp/DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/thz_spectrum-$(zselect)mm.txt",[nu;; spct])
+  writedlm(DB_Name * "-exports/thz_spectrum-$(zselect)mm.txt", [nu;; spct])
   return nothing
 end
 function exportTHzField(zval, file)
   idx = findnearest(read(file["zsave"]), zval)
   t = read(file["t"]) * 1e12
   field = read(file["$(idx)/ETHz"]) * 1e-5
-  DB_Name = read(file["DB_Name"])
+  DB_Name = read(file["inp/DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/thz_field-$(zselect)mm.txt",[t;; field])
+  writedlm(DB_Name * "-exports/thz_field-$(zselect)mm.txt", [t;; field])
   return nothing
 end
 
@@ -175,11 +175,32 @@ function exportPmpInt(zval, file)
   idx = findnearest(read(file["zsave"]), zval)
   t = read(file["t"]) * 1e12
   field = read(file["$(idx)/Eop"]) * 1e-13
-  DB_Name = read(file["DB_Name"])
+  DB_Name = read(file["inp/DB_Name"])
   checkpath(DB_Name)
   zselect = read(file["zsave"])[idx] * 1e3
-  writedlm(DB_Name * "/pump_intensity-$(zselect)mm.txt",[t;; field])
+  writedlm(DB_Name * "-exports/pump_intensity-$(zselect)mm.txt", [t;; field])
   return nothing
+end
+
+function returnTHzField(zval, file)
+  idx = findnearest(read(file["zsave"]), zval)
+  field = read(file["$(idx)/ETHz"]) * 1e-5
+  return field
+end
+function returnTHzSpect(zval, file)
+  idx = findnearest(read(file["zsave"]), zval)
+  field = read(file["$(idx)/ATHz"])
+  return field
+end
+function returnPmpInt(zval, file)
+  idx = findnearest(read(file["zsave"]), zval)
+  field = read(file["$(idx)/Eop"]) * 1e-13
+  return field
+end
+function returnPmpSpect(zval, file)
+  idx = findnearest(read(file["zsave"]), zval)
+  field = read(file["$(idx)/Aop"])
+  return field
 end
 
 @kwdef struct SimData
@@ -199,4 +220,9 @@ end
   exportPumpInt::Function = (z) -> exportPmpInt(z * 1e-3, file)
   exportTHzSpect::Function = (z) -> exportTHzSpct(z * 1e-3, file)
   exportTHzField::Function = (z) -> exportTHzField(z * 1e-3, file)
+
+  returnTHzField::Function = (z) -> returnTHzField(z, file)
+  returnPumpInt::Function = (z) -> returnPmpInt(z, file)
+  returnTHzSpect::Function = (z) -> returnTHzSpect(z, file)
+  returnPumpSpect::Function = (z) -> returnPmpSpect(z, file)
 end
