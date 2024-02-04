@@ -110,7 +110,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
-  thzAbsorption[thzAbsorption .> 1e5] .= 0
+  thzAbsorption[thzAbsorption .> 1e5] .= 1e5
 
   t1 = @spawn begin
     temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))

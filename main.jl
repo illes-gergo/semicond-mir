@@ -31,7 +31,7 @@ function runcalc()
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 3.0 * omega0
+  omegaMAX = 2.0 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt
@@ -102,7 +102,7 @@ function runcalc()
       kdz = A_komp.cumulativePhase
 
       Iop = real.(np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2)
-      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((-k_OMEGA0) * z[ii] .- kdz))))) * omegaMAX
+      ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((-k_OMEGA0) * z[ii] .+ kdz))))) * omegaMAX
       DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
       saveCounter += 1
     end
