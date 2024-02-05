@@ -221,8 +221,8 @@ end
   exportTHzSpect::Function = (z) -> exportTHzSpct(z * 1e-3, file)
   exportTHzField::Function = (z) -> exportTHzField(z * 1e-3, file)
 
-  returnTHzField::Function = (z) -> returnTHzField(z, file)
-  returnPumpInt::Function = (z) -> returnPmpInt(z, file)
-  returnTHzSpect::Function = (z) -> returnTHzSpect(z, file)
-  returnPumpSpect::Function = (z) -> returnPmpSpect(z, file)
+  returnTHzField::Function = (z) -> returnTHzField(z* 1e-3, file)
+  returnPumpInt::Function = (z) -> returnPmpInt(z* 1e-3, file)
+  returnTHzSpect::Function = (z) -> returnTHzSpect(z* 1e-3, file)
+  returnPumpSpect::Function = (z) -> returnPmpSpect(z* 1e-3, file)
 end
