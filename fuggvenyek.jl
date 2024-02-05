@@ -108,7 +108,8 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   dkdz = real.(misc.RTC.omega .* nTHzo(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff)) / misc.NC.c0
 
   n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
-  mpaPump = fft(misc.RTC.beta4 / 2^4 * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^3 .*
+
+  mpaPump = fft(1im * misc.RTC.beta4 / 2^4 * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^3 .*
                 abs.(At) .^ 6 .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
@@ -126,7 +127,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
     temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
     temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* kdz))
     temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp20 = - mpaPump -n2pm - 1 * 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega
+    temp20 = -mpaPump - n2pm - 1 * 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega
     temp20[1] = 0
     #= temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
     temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
