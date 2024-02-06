@@ -4,11 +4,11 @@ include("typedefs.jl")
 function setInput()::userInputs
   lambda0 = 2.35e-6
   tau = 0.1e-12
-  I0 = 20e13
+  I0 = 50e13
   dz = 5e-6
   nu0 = 0.5e12
   z_end = 10e-3
-  DB_name = "DB-500fs-2um"
+  DB_name = "DB-50GW-MPA-N2-2"
   differential_equation = 3 # 4 = multiphoton, 2 = shg, 1 = n2
   cry = 3
   T = 300
