@@ -93,9 +93,9 @@ function runcalc()
   FID = h5open(inputs.DB_Name, "w")
   saveCounter::Int = 1
   for ii in eachindex(z)[2:end]
-    A_komp = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
+    A_komp, Nc = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
     effic[ii] = sum(abs.(A_komp.ATHz) .^ 2 .* FI) / pF
-    NcArray[ii] = A_komp.Nc
+    NcArray[ii] = Nc
     if zsave[saveCounter] == z[ii-1] || ii == length(z)
       ATHz = A_komp.ATHz
       Aop = A_komp.Aop
