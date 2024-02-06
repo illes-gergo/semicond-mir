@@ -109,8 +109,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
 
   n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
-  mpaPump = fft(1im * misc.RTC.beta4 / 2^4 * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^3 .*
-                abs.(At) .^ 6 .* At) / misc.RTC.dnu / 2 / pi / NN
+  mpaPump = fft(misc.RTC.beta4 / 2^4 * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^3 .* abs.(At) .^ 6 .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
   thzAbsorption[thzAbsorption.>1e5] .= 1e5
@@ -127,7 +126,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
     temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
     temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* kdz))
     temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp20 = -mpaPump - n2pm - 1 * 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega
+    temp20 = -mpaPump - n2pm - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
     temp20[1] = 0
     #= temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
     temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
@@ -146,20 +145,20 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   return differentialEqInputs(ATHz=t1.result, Aop=t2.result, Nc=Neff, cumulativePhase=dkdz)
 end
 
-function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::differentialEqInputs
+function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::Tuple{differentialEqInputs,Float64}
   k1 = f(T, Y, misc)
   k2 = f(T + step / 2, Y + k1 * step / 2, misc)
   k3 = f(T + step / 2, Y + k2 * step / 2, misc)
   k4 = f(T + step, Y + k3 * step, misc)
   Y += 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4) * step
-  return Y
+  return differentialEqInputs(Aop=Y.Aop, ATHz=Y.ATHz, cumulativePhase=Y.cumulativePhase, Nc=0), Y.Nc ./ step
 end
 
 function n2value(cry)
   if cry == 4 # GaAs
     n2_ = 5.9e-18 #2023-08-04
   elseif cry == 3
-    n2_ = 11.5e-18 #https://doi.org/10.1038/s41566-019-0537-9
+    n2_ = 1.1e-17 # https://www.nature.com/articles/s41566-019-0537-9 
   end
   return n2_
 end
