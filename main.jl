@@ -28,6 +28,8 @@ function runcalc()
   saveInterval = 1.0e-4
   zsave = 0:saveInterval:z_vegso
   omega0 = 2 * pi * c / lambda0
+  MPAorder = inputs.MPAorder
+  beta = betaN(cry,MPAorder)
 
   elochirp = 0 * 1 * z_vegso / 2
 
@@ -86,7 +88,7 @@ function runcalc()
   RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=0, n2=n2, #=deff(cry)=#
     omega=omega,
     omega0=omega0, domega=domega, k_omega=k_omega,
-    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt)
+    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt, betaN=beta)
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
   NcArray = zeros(length(z))
