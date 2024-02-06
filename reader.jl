@@ -27,6 +27,7 @@ function printInputs2Console(file)
   outstring *= "Hőmérséklet: $(read(file["inp/T"])) K\n\n"
 
   outstring *= "Futtatási paraméterek:\n"
+  outstring *= "Többfotonos abszorpció rendje: $(read(file["inp/mpa"]))"
   outstring *= "Adatbázis eredeti neve: \"$(read(file["inp/DB_Name"]))\"\n"
   outstring *= "Térbeli lépésköz: $(read(file["inp/dz"])*1e6) μm\n"
   outstring *= "Felvett adatpontok száma: $(read(file["inp/N"])) darab\n\n"

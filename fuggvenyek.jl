@@ -97,7 +97,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
   It = misc.NC.e0 / 2 * misc.NC.c0 * misc.RTC.pumpRefInd * abs.(ifft(Aop .* exp.(-1im * (misc.RTC.k_omega) * z) * 2 * pi * misc.RTC.dnu * NN)) .^ 2
 
-  Nt = misc.RTC.beta4 .* cumsum(It .^ 4) .* misc.RTC.dt / 4 / misc.NC.hv / misc.RTC.omega0
+  Nt = misc.RTC.betaN .* cumsum(It .^ misc.IN.MPAorder) .* misc.RTC.dt / misc.IN.MPAorder / misc.NC.hv / misc.RTC.omega0
 
   ITHzt = abs.(ifft(ATHz .* exp.(-1im * kdz))) .^ 2
   ITHzt ./= maximum(ITHzt)
@@ -109,10 +109,10 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
 
   n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
-  mpaPump = fft(misc.RTC.beta4 / 2^4 * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^3 .* abs.(At) .^ 6 .* At) / misc.RTC.dnu / 2 / pi / NN
+  mpaPump = fft(misc.RTC.betaN / 2^misc.IN.MPAorder * (misc.NC.e0 * misc.NC.c0 * misc.RTC.pumpRefInd)^(misc.IN.MPAorder - 1) .* abs.(At) .^ (2 * misc.IN.MPAorder - 2) .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = 2 * misc.RTC.omega / misc.NC.c0 .* imag.(sqrt.(complex.(er(misc.RTC.omega, misc.IN.T, misc.IN.cry, Neff))))
-  thzAbsorption[thzAbsorption.>1e5] .= 1e5
+  thzAbsorption[thzAbsorption.>1e4] .= 1e4
 
   t1 = @spawn begin
     temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
@@ -204,6 +204,25 @@ function er(omega, T, cry, Nc=0)
   return er_
 end
 
+function betaN(cry::Int, order::Int)
+  if cry == 3
+    if order == 2
+      return 4e-11
+    elseif order == 3
+      return 1.22e-26
+    elseif order == 4
+      return 3.7e-42
+    elseif order == 5
+      return 1.14e-57
+    elseif order == 6
+      return 3.5e-73
+    end
+  else 
+    error("BetaN could not return any value")
+  end
+
+end
+
 function DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
   FID[string(saveCounter)*"/Aop"] = collect(abs.(Aop))
   FID[string(saveCounter)*"/Eop"] = collect(Iop)
@@ -233,5 +252,6 @@ function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave, gamma)
   FID["inp/cry"] = collect(inp.cry)
   FID["inp/T"] = collect(inp.T)
   FID["inp/N"] = collect(inp.N)
+  FID["inp/mpa"] = collect(inp.MPAorder)
 end
 

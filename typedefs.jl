@@ -12,6 +12,7 @@ import Base.+, Base.*, Base./
   cry::Int
   T::Float64
   N::Int=4e4
+  MPAorder::Int
 end
 
 @kwdef struct differentialEqInputs
@@ -41,7 +42,7 @@ end
   k_omegaSH::Vector{Float64}
   dnu::Float64
   pumpRefInd::Float64
-  beta4::Float64 = 2.6e-4*1e-37
+  betaN::Float64
   NN::Int
   dt::Float64
 end
