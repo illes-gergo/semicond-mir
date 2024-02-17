@@ -142,7 +142,7 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
     return temp31
   end =#
   wait.([t1, t2])
-  return differentialEqInputs(ATHz=t1.result, Aop=t2.result, Nc=Neff, cumulativePhase=dkdz)
+  return differentialEqInputs(ATHz=t1.result, Aop=t2.result, Nc=sum(Nt), cumulativePhase=dkdz)
 end
 
 function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::Tuple{differentialEqInputs,Float64}
