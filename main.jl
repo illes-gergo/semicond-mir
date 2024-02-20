@@ -21,7 +21,7 @@ function runcalc()
   I0 = inputs.I0
   khi_eff = 2 * deffTHz(cry)
   e0 = natConsts.e0
-  nu0 = 0.5e12
+  nu0 = inputs.nu0 
   dz = inputs.dz
   z_vegso = inputs.z_end
   z = 0:dz:z_vegso
