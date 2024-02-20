@@ -1,7 +1,6 @@
 # Setting Parameters
-include("typedefs.jl")
 
-function setInput()::userInputs
+#= function setInput()::userInputs
   lambda0 = 2.35e-6
   tau = 0.1e-12
   I0 = 20e13
@@ -15,4 +14,19 @@ function setInput()::userInputs
   N = 4e4
   MPAorder = 4
   return userInputs(lambda0=lambda0, tau=tau, I0=I0, dz=dz, nu0=nu0, z_end=z_end, DB_Name=DB_name, DifferentialEquationSum=differential_equation, cry=cry, T=T, N=N, MPAorder=MPAorder)
+end =#
+
+@kwdef struct userInputs
+  lambda0::Float64 = 2.35e-6
+  tau::Float64 = 0.1e-12
+  I0::Float64 = 20e13
+  dz::Float64 = 5e-6
+  nu0::Float64 = 0.5e12
+  z_end::Float64 = 2e-3
+  DB_Name::String = "DB-20GW-HJ-PARAMS_lambda_$(lambda0*1e6)_um"
+  DifferentialEquationSum::Int = 0
+  cry::Int = 3
+  T::Float64 = 300
+  N::Int=4e4
+  MPAorder::Int = 4
 end

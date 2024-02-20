@@ -10,7 +10,7 @@ include("input.jl")
 include("datafuncs.jl")
 
 function runcalc()
-  inputs = setInput()
+  inputs = userInputs()
   natConsts = naturalConstants()
   cry = inputs.cry
   T = inputs.T
@@ -119,4 +119,4 @@ function runcalc()
   return nothing
 end
 
-printInputs2Console(setInput())
+printInputs2Console(userInputs())

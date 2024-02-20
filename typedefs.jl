@@ -1,19 +1,5 @@
 import Base.+, Base.*, Base./
-
-@kwdef struct userInputs
-  lambda0::Float64
-  tau::Float64
-  I0::Float64
-  dz::Float64
-  nu0::Float64
-  z_end::Float64
-  DB_Name::String
-  DifferentialEquationSum::Int
-  cry::Int
-  T::Float64
-  N::Int=4e4
-  MPAorder::Int
-end
+include("input.jl")
 
 @kwdef struct differentialEqInputs
   ATHz::Vector{ComplexF64}
