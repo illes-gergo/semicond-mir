@@ -17,16 +17,16 @@
 end =#
 
 @kwdef struct userInputs
-  lambda0::Float64 = 2.35e-6
-  tau::Float64 = 0.1e-12
-  I0::Float64 = 20e13
+  lambda0::Float64 = 1.75e-6
+  tau::Float64 = 25e-15
+  I0::Float64 = 7.5e13
   dz::Float64 = 5e-6
-  nu0::Float64 = 0.5e12
-  z_end::Float64 = 2e-3
-  DB_Name::String = "DB-20GW-HJ-PARAMS_lambda_$(lambda0*1e6)_um"
+  nu0::Float64 = 2.0e12
+  z_end::Float64 = 4e-3
+  DB_Name::String = "luis-proba"
   DifferentialEquationSum::Int = 0
   cry::Int = 3
   T::Float64 = 300
-  N::Int=4e4
+  N::Int=2e4
   MPAorder::Int = 4
 end
