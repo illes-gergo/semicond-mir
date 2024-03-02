@@ -23,10 +23,10 @@ end =#
   dz::Float64 = 5e-6
   nu0::Float64 = 2.0e12
   z_end::Float64 = 4e-3
-  DB_Name::String = "luis-proba"
+  DB_Name::String = "luis-proba-n2"
   DifferentialEquationSum::Int = 0
   cry::Int = 3
   T::Float64 = 300
-  N::Int=2e4
+  N::Int=4e4
   MPAorder::Int = 4
 end
