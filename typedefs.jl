@@ -4,9 +4,15 @@ include("input.jl")
 @kwdef struct differentialEqInputs
   ATHz::Vector{ComplexF64}
   Aop::Vector{ComplexF64}
-# ASH::Vector{ComplexF64}
+  # ASH::Vector{ComplexF64}
   cumulativePhase::Vector{Float64}
   Nc::Float64
+end
+
+@kwdef struct COdifferentialEqInputs
+  ATHz::Vector{ComplexF64}
+  Aop::Vector{ComplexF64}
+  ASH::Vector{ComplexF64}
 end
 
 @kwdef struct naturalConstants
@@ -54,7 +60,7 @@ end
 
 function /(a::differentialEqInputs, b::Int64)
   return (differentialEqInputs(ATHz=a.ATHz ./ b,
-    Aop=a.Aop ./ b, Nc=a.Nc ./ b, cumulativePhase= a.cumulativePhase ./ b))
+    Aop=a.Aop ./ b, Nc=a.Nc ./ b, cumulativePhase=a.cumulativePhase ./ b))
 end
 
 #  MethodError: no method matching +(::differentialEqInputs, ::differentialEqInputs)
@@ -69,4 +75,20 @@ end
 function *(b::Int64, a::differentialEqInputs)
   return (differentialEqInputs(ATHz=a.ATHz .* b,
     Aop=a.Aop .* b, Nc=a.Nc .* b, cumulativePhase=a.cumulativePhase .* b))
+end
+
+function *(a::COdifferentialEqInputs, b::Number)
+  return COdifferentialEqInputs(Aop=a.Aop .* b, ATHz=a.ATHz .* b, ASH=a.ASH .* b)
+end
+
+function *(b::Number, a::COdifferentialEqInputs)
+  return COdifferentialEqInputs(Aop=a.Aop .* b, ATHz=a.ATHz .* b, ASH=a.ASH .* b)
+end
+
+function /(a::COdifferentialEqInputs, b::Number)
+  return COdifferentialEqInputs(Aop=a.Aop ./ b, ATHz=a.ATHz ./ b, ASH=a.ASH ./ b)
+end
+
+function +(a::COdifferentialEqInputs, b::COdifferentialEqInputs)
+  return COdifferentialEqInputs(Aop=a.Aop .+ b.Aop, ATHz = a.ATHz .+ b.ATHz, ASH = a.ASH .+ b.ASH)
 end

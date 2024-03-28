@@ -21,7 +21,7 @@ function runcalc()
   I0 = inputs.I0
   khi_eff = 2 * deffTHz(cry)
   e0 = natConsts.e0
-  nu0 = inputs.nu0 
+  nu0 = inputs.nu0
   dz = inputs.dz
   z_vegso = inputs.z_end
   z = 0:dz:z_vegso
@@ -29,11 +29,11 @@ function runcalc()
   zsave = 0:saveInterval:z_vegso
   omega0 = 2 * pi * c / lambda0
   MPAorder = inputs.MPAorder
-  beta = betaN(cry,MPAorder)
+  #beta = betaN(cry,MPAorder)
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 2.0 * omega0
+  omegaMAX = 2.5 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt
@@ -80,29 +80,29 @@ function runcalc()
   FI = 4 * nTHz .^ 2 ./ (1 + nTHz) .^ 2
   FA = 2 * nTHz ./ (1 + nTHz)
 
-  A_komp::differentialEqInputs = differentialEqInputs(Aop=Aop, ATHz=ATHz, cumulativePhase=zeros(N), Nc=0)
+  #A_komp::differentialEqInputs = differentialEqInputs(Aop=Aop, ATHz=ATHz, cumulativePhase=zeros(N), Nc=0)
+  A_komp::COdifferentialEqInputs = COdifferentialEqInputs(Aop=Aop, ATHz=ATHz, ASH=zeros(size(Aop)))
 
   effic = zeros(size(z))
   efficSH = zeros(size(effic))
   n2 = n2value(cry)
-  RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=0, n2=n2, #=deff(cry)=#
+  RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=deff(cry), n2=n2,
     omega=omega,
     omega0=omega0, domega=domega, k_omega=k_omega,
-    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt, betaN=beta)
+    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt, betaN=0)
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
   NcArray = zeros(length(z))
   FID = h5open(inputs.DB_Name, "w")
   saveCounter::Int = 1
   for ii in eachindex(z)[2:end]
-    A_komp, Nc = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
+    A_komp = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
     effic[ii] = sum(abs.(A_komp.ATHz) .^ 2 .* FI) / pF
-    NcArray[ii] = Nc
+    NcArray[ii] = 0
     if zsave[saveCounter] == z[ii-1] || ii == length(z)
       ATHz = A_komp.ATHz
       Aop = A_komp.Aop
-      kdz = A_komp.cumulativePhase
-
+      kdz = RTC.k_OMEGA .* z[ii]
       Iop = real.(np0 * e0 * c / 2 * abs.((ifft(Aop .* exp.(-1im * (k_omega - k_omega0) * z[ii]))) * omegaMAX) .^ 2)
       ETHz = real.((ifft(FA .* ATHz .* exp.(-1im * ((-k_OMEGA0) * z[ii] .+ kdz))))) * omegaMAX
       DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
