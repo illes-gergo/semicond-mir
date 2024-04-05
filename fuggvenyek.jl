@@ -36,6 +36,14 @@ function neo(lambda, T, cry)
     d2 = 27.52
 
     n = @. sqrt(complex(1 + a1 * l .^ 2 ./ (l .^ 2 - a2^2) + b1 * l .^ 2 ./ (l .^ 2 - b2^2) + c1 * l .^ 2 ./ (l .^ 2 - c2^2) + d1 * l .^ 2 ./ (l .^ 2 - d2^2)))
+
+  elseif cry == 0
+    l = lambda .* 1e6
+    n = abs.(sqrt.(Complex.((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)))
+    if (typeof(n) == Vector)
+      n[n.>=10] .= 10
+      n[n.<=1] .= 1
+    end
   end
   return n
 end
@@ -73,6 +81,14 @@ function ngp(lambda, T, cry)
     a = n0 - l * Symbolics.derivative(n0, l)
     #l = lambda1
     ng = Symbolics.value(substitute(a, l => lambda1))
+
+  elseif cry == 0
+    @variables l
+    lambda1 = lambda .* 1e6
+    n0 = sqrt((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)
+    a = n0 - l * Symbolics.derivative(n0, l)
+    #l = lambda1
+    ng = Symbolics.value(substitute(a, l => lambda1))
   end
   return ng
 end
@@ -82,6 +98,15 @@ function nTHzo(omega, T, cry, Nc=0)
     nTHz = real.(sqrt.(er(omega, T, cry)))
   elseif cry == 3
     nTHz = real.(sqrt.(complex.(er(omega, T, cry, Nc))))
+  elseif cry == 0 #Buzády 2020 => 300 K
+    nu = omega ./ 2 ./ pi
+    A = 4.90
+    B = 2.07e-2 .* 1e12 .^ -2
+    C = 2.82e-3 .* 1e12 .^ -4
+    nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
+    if typeof(nTHz) == Vector
+      nTHz[nTHz.>=10] .= 10
+    end
   end
   return nTHz
 end
@@ -156,7 +181,7 @@ function diffegy_conv(z, A_kompozit::COdifferentialEqInputs, misc::miscInput)::C
 
   n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
-  thzAbsorption = aTHzo(misc.RTC.omega,300,misc.IN.cry)
+  thzAbsorption = aTHzo(misc.RTC.omega, 300, misc.IN.cry)
   thzAbsorption[thzAbsorption.>1e4] .= 1e4
 
   #t1 = begin
@@ -211,6 +236,8 @@ function n2value(cry)
     n2_ = 5.9e-18 #2023-08-04
   elseif cry == 3
     n2_ = 1.1e-17 # https://www.nature.com/articles/s41566-019-0537-9 
+  elseif cry == 0
+    n2_ = 0
   end
   return n2_
 end
@@ -218,6 +245,8 @@ end
 function deff(cry)
   if cry == 4 #% GaAs
     deff_ = 2 / sqrt(3) * 80e-12 #2023-08-04
+  elseif cry == 0
+    deff_ = 0
   end
   return deff_
 end
@@ -225,7 +254,13 @@ end
 function aTHzo(omega, T, cry)
   if cry == 4
     alpha = -2 .* omega / 3e8 .* imag(sqrt.(er(omega, T, cry)))
+  elseif cry == 0
+    nu = omega ./ 2 ./ pi
+    a0 = 0.69e2 .* 1e12 .^ -2
+    b0 = 1.07e-2 .* 1e12 .^ -2
+    alpha = (a0 .+ b0 .* T .^ 2) .* nu .^ 2
   end
+
   return alpha
 end
 

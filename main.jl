@@ -33,7 +33,7 @@ function runcalc()
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 2.5 * omega0
+  omegaMAX = 1.3 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt

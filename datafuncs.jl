@@ -11,6 +11,8 @@ function printInputs2Console(inp::userInputs)
     material = "GaP"
   elseif inp.cry == 4
     material = "GaAs"
+  elseif inp.cry == 0
+    material = "LN"
   else
     error("Ismeretlen kristály anyag")
   end
@@ -32,6 +34,8 @@ function printInputs2Console(inp::userInputs)
     material = "GaP"
   elseif inp.cry == 4
     material = "GaAs"
+  elseif inp.cry == 0
+    material = "LN"
   else
     error("Ismeretlen kristály anyag")
   end

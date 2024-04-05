@@ -17,16 +17,17 @@
 end =#
 
 @kwdef struct userInputs
-  lambda0::Float64 = 10.6e-6
-  tau::Float64 = 2e-12
-  I0::Float64 = 17.5e13
+  lambda0::Float64 = 1030e-9
+  tau::Float64 = 500e-15
+  I0::Float64 = 100e13
   dz::Float64 = 5e-6
-  nu0::Float64 = 1.0e12
-  z_end::Float64 = 8e-3
+  nu0::Float64 = 0.5e12
+  z_end::Float64 = 1e-3
   DB_Name::String = "luis-proba-2"
   DifferentialEquationSum::Int = 0
-  cry::Int = 4
+  cry::Int = 0
   T::Float64 = 300
   N::Int=4e4
-  MPAorder::Int = 4
+  MPAorder::Int = 0
 end
+
