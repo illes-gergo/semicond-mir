@@ -33,7 +33,7 @@ function runcalc()
 
   elochirp = 0 * 1 * z_vegso / 2
 
-  omegaMAX = 1.3 * omega0
+  omegaMAX = 1.2 * omega0
 
   dt = 2 * pi / omegaMAX
   t = (0:N-1) * dt
@@ -68,6 +68,9 @@ function runcalc()
   ddk_omegaSH = -ngpSH .^ 2 / omega0 / 2 / c / npSH * tan(gamma)^2
   k_omegaSH = real(1 / cos(gamma) .* (omega .* n_omega / c + 1 * (omega .- 2 * omega0) .^ 2 / 2 .* ddk_omegaSH))
   k_omega0 = real.(1 ./ cos(gamma) .* (omega .* ngp0 / c))
+  if cry == 0
+    k_omega[k_omega.<1e6] .= 1e6
+  end
 
 
   Aot = A0t * exp.(-2 * log(2) * t .^ 2 / tau^2) .* exp.(1im * omega0 * t)

@@ -39,11 +39,7 @@ function neo(lambda, T, cry)
 
   elseif cry == 0
     l = lambda .* 1e6
-    n = abs.(sqrt.(Complex.((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)))
-    if (typeof(n) == Vector)
-      n[n.>=10] .= 10
-      n[n.<=1] .= 1
-    end
+    n = real.(sqrt.(Complex.((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)))
   end
   return n
 end
@@ -104,9 +100,6 @@ function nTHzo(omega, T, cry, Nc=0)
     B = 2.07e-2 .* 1e12 .^ -2
     C = 2.82e-3 .* 1e12 .^ -4
     nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
-    if typeof(nTHz) == Vector
-      nTHz[nTHz.>=10] .= 10
-    end
   end
   return nTHz
 end
