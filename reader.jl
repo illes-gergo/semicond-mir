@@ -20,6 +20,8 @@ function printInputs2Console(file)
     material = "GaP"
   elseif matchoice == 4
     material = "GaAs"
+  elseif matchoice == 0
+    material = "LN"
   else
     error("Ismeretlen kristály anyag")
   end
@@ -103,6 +105,8 @@ function printInputs2File(file)
     material = "GaP"
   elseif matchoice == 4
     material = "GaAs"
+  elseif matchoice == 0
+    material = "LN"
   else
     error("Ismeretlen kristály anyag")
   end

@@ -36,6 +36,10 @@ function neo(lambda, T, cry)
     d2 = 27.52
 
     n = @. sqrt(complex(1 + a1 * l .^ 2 ./ (l .^ 2 - a2^2) + b1 * l .^ 2 ./ (l .^ 2 - b2^2) + c1 * l .^ 2 ./ (l .^ 2 - c2^2) + d1 * l .^ 2 ./ (l .^ 2 - d2^2)))
+
+  elseif cry == 0
+    l = lambda .* 1e6
+    n = real.(sqrt.(Complex.((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)))
   end
   return n
 end
@@ -73,6 +77,14 @@ function ngp(lambda, T, cry)
     a = n0 - l * Symbolics.derivative(n0, l)
     #l = lambda1
     ng = Symbolics.value(substitute(a, l => lambda1))
+
+  elseif cry == 0
+    @variables l
+    lambda1 = lambda .* 1e6
+    n0 = sqrt((2.6734 .* l .^ 2) ./ (l .^ 2 .- 0.01764) .+ (1.229 .* l .^ 2) ./ (l .^ 2 .- 0.05914) .+ (12.614 .* l .^ 2) ./ (l .^ 2 .- 474.6) .+ 1)
+    a = n0 - l * Symbolics.derivative(n0, l)
+    #l = lambda1
+    ng = Symbolics.value(substitute(a, l => lambda1))
   end
   return ng
 end
@@ -82,6 +94,12 @@ function nTHzo(omega, T, cry, Nc=0)
     nTHz = real.(sqrt.(er(omega, T, cry)))
   elseif cry == 3
     nTHz = real.(sqrt.(complex.(er(omega, T, cry, Nc))))
+  elseif cry == 0 #Buzády 2020 => 300 K
+    nu = omega ./ 2 ./ pi
+    A = 4.90
+    B = 2.07e-2 .* 1e12 .^ -2
+    C = 2.82e-3 .* 1e12 .^ -4
+    nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
   end
   return nTHz
 end
@@ -115,25 +133,25 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   thzAbsorption[thzAbsorption.>1e4] .= 1e4
 
   #t1 = begin
-    temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
-    temp11 = temp11[NN:end] .* exp.(1im .* kdz) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ dkdz) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
-    temp11[1] = 0
+  temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
+  temp11 = temp11[NN:end] .* exp.(1im .* kdz) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ dkdz) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11[1] = 0
   #  return temp11
   #end
 
   #t2 = begin
-    temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* kdz)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
-    temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* kdz))
-    temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp20 = -mpaPump - n2pm - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
-    temp20[1] = 0
-    #= temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
-    temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
-    temp24 = temp20 + temp23
-    temp24[1] = 0=#
-#    return temp20
-#  end
+  temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* kdz)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
+  temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* kdz))
+  temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp20 = -mpaPump - n2pm - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20[1] = 0
+  #= temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
+  temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp24 = temp20 + temp23
+  temp24[1] = 0=#
+  #    return temp20
+  #  end
 
   #=t3 = @spawn begin
     temp31 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), Aop .* exp.(-1im .* misc.RTC.k_omega .* z)) * misc.RTC.domega
@@ -145,6 +163,79 @@ function diffegy_conv(z, A_kompozit::differentialEqInputs, misc::miscInput)
   return differentialEqInputs(ATHz=temp11, Aop=temp20, Nc=sum(Nt), cumulativePhase=dkdz)
 end
 
+function diffegy_conv(z, A_kompozit::COdifferentialEqInputs, misc::miscInput)::COdifferentialEqInputs
+  ATHz = A_kompozit.ATHz
+  Aop = A_kompozit.Aop
+  ASH = A_kompozit.ASH
+  NN = misc.RTC.NN
+
+
+  At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
+
+  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
+
+  thzAbsorption = aTHzo(misc.RTC.omega, 300, misc.IN.cry)
+  thzAbsorption[thzAbsorption.>1e4] .= 1e4
+
+  #t1 = begin
+  temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
+  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11[1] = 0
+  #  return temp11
+  #end
+
+  #t2 = begin
+  temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* misc.RTC.k_OMEGA .* z)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
+  temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
+  temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp20 = -n2pm - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 + temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20[1] = 0
+  temp23 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), ASH .* exp.(-1im .* misc.RTC.k_omegaSH .* z)) .* misc.RTC.domega
+  temp23 = -1 ./ cos(misc.RTC.gamma) .* 1im .* misc.RTC.deff .* misc.RTC.omega .^ 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp23[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp24 = temp20 + temp23
+  temp24[1] = 0
+  #  end
+
+  #t3 = @spawn begin
+  temp31 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), Aop .* exp.(-1im .* misc.RTC.k_omega .* z)) * misc.RTC.domega
+  temp31 = -1 ./ cos(misc.RTC.gamma) * 1im * misc.RTC.deff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* temp31[1:NN] .* exp.(1im .* misc.RTC.k_omegaSH .* z)
+  temp31[1] = 0
+  #end =#
+  #wait.([t1, t2])
+  return COdifferentialEqInputs(ATHz=temp11, Aop=temp24, ASH=temp31)
+end
+
+function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
+  ATHz = A_kompozit.ATHz
+  Aop = A_kompozit.Aop
+  NN = misc.RTC.NN
+
+
+  At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
+
+  #n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
+
+  thzAbsorption = aTHzo(misc.RTC.omega, 300, misc.IN.cry)
+  thzAbsorption[thzAbsorption.>1e4] .= 1e4
+
+  #t1 = begin
+  temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
+  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11[1] = 0
+  #  return temp11
+  #end
+
+  #t2 = begin
+  temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* misc.RTC.k_OMEGA .* z)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
+  temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
+  temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp20 = #=-n2pm=# - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20[1] = 0
+  return LNeqInputs(ATHz=temp11, Aop=temp20)
+end
+
 function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::Tuple{differentialEqInputs,Float64}
   k1 = f(T, Y, misc)
   k2 = f(T + step / 2, Y + k1 * step / 2, misc)
@@ -154,11 +245,31 @@ function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, 
   return differentialEqInputs(Aop=Y.Aop, ATHz=Y.ATHz, cumulativePhase=Y.cumulativePhase, Nc=0), Y.Nc ./ step
 end
 
+function RK4_M(f::Function, step::Float64, T::Float64, Y::COdifferentialEqInputs, misc::miscInput)::COdifferentialEqInputs
+  k1 = f(T, Y, misc)
+  k2 = f(T + step / 2, Y + k1 * step / 2, misc)
+  k3 = f(T + step / 2, Y + k2 * step / 2, misc)
+  k4 = f(T + step, Y + k3 * step, misc)
+  Y += 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4) * step
+  return COdifferentialEqInputs(Aop=Y.Aop, ATHz=Y.ATHz, ASH=Y.ASH)
+end
+
+function RK4_M(f::Function, step::Float64, T::Float64, Y::LNeqInputs, misc::miscInput)::LNeqInputs
+  k1 = f(T, Y, misc)
+  k2 = f(T + step / 2, Y + k1 * step / 2, misc)
+  k3 = f(T + step / 2, Y + k2 * step / 2, misc)
+  k4 = f(T + step, Y + k3 * step, misc)
+  Y += 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4) * step
+  return LNeqInputs(Aop=Y.Aop, ATHz=Y.ATHz)
+end
+
 function n2value(cry)
   if cry == 4 # GaAs
     n2_ = 5.9e-18 #2023-08-04
   elseif cry == 3
     n2_ = 1.1e-17 # https://www.nature.com/articles/s41566-019-0537-9 
+  elseif cry == 0
+    n2_ = 0
   end
   return n2_
 end
@@ -166,6 +277,8 @@ end
 function deff(cry)
   if cry == 4 #% GaAs
     deff_ = 2 / sqrt(3) * 80e-12 #2023-08-04
+  elseif cry == 0
+    deff_ = 0
   end
   return deff_
 end
@@ -173,7 +286,13 @@ end
 function aTHzo(omega, T, cry)
   if cry == 4
     alpha = -2 .* omega / 3e8 .* imag(sqrt.(er(omega, T, cry)))
+  elseif cry == 0
+    nu = omega ./ 2 ./ pi
+    a0 = 0.69e2 .* 1e12 .^ -2
+    b0 = 1.07e-2 .* 1e12 .^ -2
+    alpha = (a0 .+ b0 .* T .^ 2) .* nu .^ 2
   end
+
   return alpha
 end
 
@@ -217,7 +336,7 @@ function betaN(cry::Int, order::Int)
     elseif order == 6
       return 3.5e-73
     end
-  else 
+  else
     error("BetaN could not return any value")
   end
 
