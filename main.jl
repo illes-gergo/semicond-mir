@@ -72,7 +72,6 @@ function runcalc()
 
   Aot = A0t * exp.(-2 * log(2) * t .^ 2 / tau^2) .* exp.(1im * omega0 * t)
   Aop = fft(Aot) .* exp.(1im * (k_omega - k_omega0) * elochirp) * dt / 2 / pi
-
   ATHz = zeros(size(Aop))
 
   pF = sum(abs.(Aop) .^ 2) * np0
@@ -81,7 +80,7 @@ function runcalc()
   FA = 2 * nTHz ./ (1 + nTHz)
 
   #A_komp::differentialEqInputs = differentialEqInputs(Aop=Aop, ATHz=ATHz, cumulativePhase=zeros(N), Nc=0)
-  A_komp::COdifferentialEqInputs = COdifferentialEqInputs(Aop=Aop, ATHz=ATHz, ASH=zeros(size(Aop)))
+  A_komp::LNeqInputs = LNeqInputs(Aop=Aop, ATHz=ATHz)
 
   effic = zeros(size(z))
   efficSH = zeros(size(effic))

@@ -213,6 +213,36 @@ function diffegy_conv(z, A_kompozit::COdifferentialEqInputs, misc::miscInput)::C
   return COdifferentialEqInputs(ATHz=temp11, Aop=temp24, ASH=temp31)
 end
 
+function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
+  ATHz = A_kompozit.ATHz
+  Aop = A_kompozit.Aop
+  NN = misc.RTC.NN
+
+
+  At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
+
+  #n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
+
+  thzAbsorption = aTHzo(misc.RTC.omega, 300, misc.IN.cry)
+  thzAbsorption[thzAbsorption.>1e4] .= 1e4
+
+  #t1 = begin
+  temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
+  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11[1] = 0
+  #  return temp11
+  #end
+
+  #t2 = begin
+  temp21 = conv(reverse(conj(ATHz) .* exp.(1im .* misc.RTC.k_OMEGA .* z)), Aop .* exp.(-1im .* misc.RTC.k_omega .* z))
+  temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
+  temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
+  temp20 = #=-n2pm=# - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20[1] = 0
+  return LNeqInputs(ATHz=temp11, Aop=temp20)
+end
+
 function RK4_M(f::Function, step::Float64, T::Float64, Y::differentialEqInputs, misc::miscInput)::Tuple{differentialEqInputs,Float64}
   k1 = f(T, Y, misc)
   k2 = f(T + step / 2, Y + k1 * step / 2, misc)
@@ -229,6 +259,15 @@ function RK4_M(f::Function, step::Float64, T::Float64, Y::COdifferentialEqInputs
   k4 = f(T + step, Y + k3 * step, misc)
   Y += 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4) * step
   return COdifferentialEqInputs(Aop=Y.Aop, ATHz=Y.ATHz, ASH=Y.ASH)
+end
+
+function RK4_M(f::Function, step::Float64, T::Float64, Y::LNeqInputs, misc::miscInput)::LNeqInputs
+  k1 = f(T, Y, misc)
+  k2 = f(T + step / 2, Y + k1 * step / 2, misc)
+  k3 = f(T + step / 2, Y + k2 * step / 2, misc)
+  k4 = f(T + step, Y + k3 * step, misc)
+  Y += 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4) * step
+  return LNeqInputs(Aop=Y.Aop, ATHz=Y.ATHz)
 end
 
 function n2value(cry)

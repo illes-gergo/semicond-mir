@@ -15,6 +15,11 @@ end
   ASH::Vector{ComplexF64}
 end
 
+@kwdef struct LNeqInputs
+  ATHz::Vector{ComplexF64}
+  Aop::Vector{ComplexF64}
+end
+
 @kwdef struct naturalConstants
   c0::Float64 = 3e8
   e0::Float64 = 8.8541878128e-12
@@ -91,4 +96,20 @@ end
 
 function +(a::COdifferentialEqInputs, b::COdifferentialEqInputs)
   return COdifferentialEqInputs(Aop=a.Aop .+ b.Aop, ATHz = a.ATHz .+ b.ATHz, ASH = a.ASH .+ b.ASH)
+end
+
+function *(a::LNeqInputs, b::Number)
+  return LNeqInputs(Aop=a.Aop .* b, ATHz=a.ATHz .* b)
+end
+
+function *(b::Number, a::LNeqInputs)
+  return LNeqInputs(Aop=a.Aop .* b, ATHz=a.ATHz .* b)
+end
+
+function /(a::LNeqInputs, b::Number)
+  return LNeqInputs(Aop=a.Aop ./ b, ATHz=a.ATHz ./ b)
+end
+
+function +(a::LNeqInputs, b::LNeqInputs)
+  return LNeqInputs(Aop=a.Aop .+ b.Aop, ATHz = a.ATHz .+ b.ATHz)
 end
