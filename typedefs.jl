@@ -42,6 +42,7 @@ end
   betaN::Float64
   NN::Int
   dt::Float64
+  period::Float64 # Domain period. Each Wafer has length period/2, producing half cycle.
 end
 
 @kwdef struct miscInput

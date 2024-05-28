@@ -20,7 +20,7 @@ function printInputs2Console(inp::userInputs)
   outstring *= "Temperature: $(inp.T) K\n\n"
   
   outstring *= "Run Parameters:\n"
-  outstring *= "Többfotonos abszorpció rendje: $(inp.MPAorder)\n"
+  outstring *= "Multi-photon Absorption Order: $(inp.MPAorder)\n"
 include("typedefs.jl")
 
 function printInputs2Console(inp::userInputs)
@@ -52,11 +52,11 @@ function printInputs2Console(inp::userInputs)
   print(outstring)
   return nothing
 end
-  outstring *= "Adatbázis neve: \"$(inp.DB_Name)\"\n"
-  outstring *= "Térbeli lépésköz: $(inp.dz)\n"
-  outstring *= "Felvett adatpontok száma: $(inp.N)\n\n"
+  outstring *= "Database Filename: \"$(inp.DB_Name)\"\n"
+  outstring *= "Spatial Step Length (dz): $(inp.dz)\n"
+  outstring *= "Number of Points Recorded: $(inp.N)\n\n"
 
-  outstring*= "Számolás indítása a runcalc() függvényhívással"
+  outstring*= """Start Calculation typing "runcalc()"\n"""
   print(outstring)
   return nothing
 end

@@ -88,10 +88,17 @@ function runcalc()
   effic = zeros(size(z))
   efficSH = zeros(size(effic))
   n2 = n2value(cry)
+
+  if inputs.matchFreqPeriod == true
+    period = c / inputs.nu0 / (nTHz - ngr0)
+  else
+    period = inputs.period
+  end
+
   RTC = runTimeConstants(gamma=gamma, khi_eff=khi_eff, deff=deff(cry), n2=n2,
     omega=omega,
     omega0=omega0, domega=domega, k_omega=k_omega,
-    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt, betaN=0)
+    k_OMEGA=k_OMEGA, k_omegaSH=k_omegaSH, dnu=dnu, pumpRefInd=np0, NN=N, dt=dt, betaN=0, period=period)
 
   misc = miscInput(NC=natConsts, IN=inputs, RTC=RTC)
   NcArray = zeros(length(z))

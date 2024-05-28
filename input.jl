@@ -1,5 +1,4 @@
 # Setting Parameters
-
 #= function setInput()::userInputs
   lambda0 = 2.35e-6
   tau = 0.1e-12
@@ -29,5 +28,6 @@ end =#
   T::Float64 = 300
   N::Int=4e4
   MPAorder::Int = 0
+  matchFreqPeriod::Bool = true
+  period::Float64 = 300e-6 
 end
-
