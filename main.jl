@@ -55,7 +55,7 @@ function runcalc()
 
   nTHz = nTHzo(2 * pi * nu0, T, cry)
 
-  gamma = acos.(ngp0 / nTHz)
+  gamma = 0. # QPM - no tilted-front-pulse in this configuration acos.(ngp0 / nTHz)
 
   A0t = sqrt(2 * I0 / neo(lambda0, T, cry) / e0 / c)
 
@@ -79,8 +79,8 @@ function runcalc()
 
   pF = sum(abs.(Aop) .^ 2) * np0
 
-  FI = 4 * nTHz .^ 2 ./ (1 + nTHz) .^ 2
-  FA = 2 * nTHz ./ (1 + nTHz)
+  FI = 4 * nTHz .^ 2 ./ (1 + nTHz) .^ 2 # Fresnel Transmission coefficient for the field intensity
+  FA = 2 * nTHz ./ (1 + nTHz) # Fresnel Transmission coefficient for the Field envelope
 
   #A_komp::differentialEqInputs = differentialEqInputs(Aop=Aop, ATHz=ATHz, cumulativePhase=zeros(N), Nc=0)
   A_komp::LNeqInputs = LNeqInputs(Aop=Aop, ATHz=ATHz)
