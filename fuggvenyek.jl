@@ -1,4 +1,5 @@
 include("typedefs.jl")
+using Waveforms
 
 function deffTHz(cry)
   if cry == 0 # LN
@@ -14,6 +15,12 @@ function deffTHz(cry)
   end
   return deff_
 end
+
+function khi_eff_QPM(cry, z, domainPeriod)
+  khi_eff_QPM_ = 2 * deffTHz(cry) * squarewave1(z/domainPeriod)
+  return khi_eff_QPM_
+end
+  
 
 function neo(lambda, T, cry)
   if cry == 4 #GaAs Skauli et al. 2003 0.97-17 um
@@ -221,7 +228,7 @@ function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
 
   #t1 = begin
   temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
-  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* khi_eff_QPM(misc.IN.cry, z, misc.RTC.period) .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
   temp11[1] = 0
   #  return temp11
   #end
@@ -231,7 +238,7 @@ function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
   temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
   temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
   temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
-  temp20 = #=-n2pm=# - 1im * misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20 = #=-n2pm=# - 1im * khi_eff_QPM(misc.IN.cry, z, misc.RTC.period) .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
   temp20[1] = 0
   return LNeqInputs(ATHz=temp11, Aop=temp20)
 end

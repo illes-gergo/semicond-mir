@@ -90,7 +90,7 @@ function runcalc()
   n2 = n2value(cry)
 
   if inputs.matchFreqPeriod == true
-    period = c / inputs.nu0 / (nTHz - ngr0)
+    period = c / inputs.nu0 / (nTHz - ngp0)
   else
     period = inputs.period
   end

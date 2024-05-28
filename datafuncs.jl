@@ -3,7 +3,7 @@ include("typedefs.jl")
 function printInputs2Console(inp::userInputs)
   outstring = "Input Parameters:\n"
   outstring *= "Pump Wavelength: $(inp.lambda0*1e6) μm\n"
-  outstring *= "Half-Width Half-Maximum: $(inp.tau*1e12) ps\n"
+  outstring *= "Full-Width at Half-Maximum: $(inp.tau*1e12) ps\n"
   outstring *= "Peak Intensity: $(inp.I0*1e-13) GW/cm^2\n"
   outstring *= "THz Matched Frequency: $(inp.nu0*1e-12) THz\n"
   outstring *= "Crystal Length: $(inp.z_end*1e3) mm\n"
@@ -26,7 +26,7 @@ include("typedefs.jl")
 function printInputs2Console(inp::userInputs)
   outstring = "Input Parameters:\n"
   outstring *= "Pump Wavelength: $(inp.lambda0*1e6) μm\n"
-  outstring *= "Half-Width Half-Maximum: $(inp.tau*1e12) ps\n"
+  outstring *= "Full-Width at Half-Maximum: $(inp.tau*1e12) ps\n"
   outstring *= "Peak Intensity: $(inp.I0*1e-13) GW/cm^2\n"
   outstring *= "THz Matched Frequency: $(inp.nu0*1e-12) THz\n"
   outstring *= "Crystal Length: $(inp.z_end*1e3) mm\n"
