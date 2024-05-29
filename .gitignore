@@ -1,3 +1,4 @@
-DB*
-luis*
-*.hdf5
+*
+!.gitignore
+!*.jl
+!*.toml
