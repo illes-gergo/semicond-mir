@@ -221,14 +221,14 @@ function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
 
   At = ifft(Aop .* 2 * pi * misc.RTC.dnu * NN)
 
-  #n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
+  n2pm = fft(1im * misc.NC.e0 * misc.RTC.omega0 * misc.RTC.pumpRefInd * misc.RTC.n2 / 2 * abs.(At) .^ 2 .* At) / misc.RTC.dnu / 2 / pi / NN
 
   thzAbsorption = aTHzo(misc.RTC.omega, 300, misc.IN.cry)
   thzAbsorption[thzAbsorption.>1e4] .= 1e4
 
   #t1 = begin
   temp11 = conv(reverse(conj(Aop) .* exp.(1im .* misc.RTC.k_omega .* z)), (Aop .* exp.(-1im * misc.RTC.k_omega .* z)))
-  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* khi_eff_QPM(misc.IN.cry, z, misc.RTC.period) .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
+  temp11 = temp11[NN:end] .* exp.(1im .* misc.RTC.k_OMEGA .* z) .* (-1im .* misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_OMEGA) .* misc.RTC.domega - 1 .* thzAbsorption / 2 .* ATHz
   temp11[1] = 0
   #  return temp11
   #end
@@ -238,7 +238,7 @@ function diffegy_conv(z, A_kompozit::LNeqInputs, misc::miscInput)::LNeqInputs
   temp21 = temp21[NN:end] .* exp.(1im .* misc.RTC.k_omega .* z)
   temp22 = conv(Aop .* exp.(-1im .* misc.RTC.k_omega .* z), ATHz .* exp.(-1im .* misc.RTC.k_OMEGA .* z))
   temp22 = temp22[1:NN] .* exp.(1im .* misc.RTC.k_omega .* z)
-  temp20 = #=-n2pm=# - 1im * khi_eff_QPM(misc.IN.cry, z, misc.RTC.period) .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
+  temp20 = - n2pm - 1im *  misc.RTC.khi_eff .* misc.RTC.omega .^ 2 / 2 / misc.NC.c0^2 ./ misc.RTC.k_omega .* (temp21 .+ temp22) .* misc.RTC.domega #=-n2pm -mpaPump=#
   temp20[1] = 0
   return LNeqInputs(ATHz=temp11, Aop=temp20)
 end

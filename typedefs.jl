@@ -26,7 +26,7 @@ end
   hv::Float64 = 6.626e-34 / 2 / pi
 end
 
-@kwdef struct runTimeConstants
+@kwdef mutable struct runTimeConstants
   gamma::Float64
   khi_eff::Float64
   deff::Float64
@@ -45,7 +45,7 @@ end
   period::Float64 # Domain period. Each Wafer has length period/2, producing half cycle.
 end
 
-@kwdef struct miscInput
+@kwdef mutable struct miscInput
   NC::naturalConstants
   IN::userInputs
   RTC::runTimeConstants

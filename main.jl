@@ -9,8 +9,8 @@ include("typedefs.jl")
 include("input.jl")
 include("datafuncs.jl")
 
-function runcalc()
-  inputs = userInputs()
+function runcalc(inputs::userInputs= userInputs())
+  # inputs = userInputs()
   natConsts = naturalConstants()
   cry = inputs.cry
   T = inputs.T
@@ -91,6 +91,7 @@ function runcalc()
 
   if inputs.matchFreqPeriod == true
     period = c / inputs.nu0 / (nTHz - ngp0)
+    # period = c * inputs.tau / (nTHz - ngp0)
   else
     period = inputs.period
   end
@@ -105,6 +106,7 @@ function runcalc()
   FID = h5open(inputs.DB_Name, "w")
   saveCounter::Int = 1
   for ii in eachindex(z)[2:end]
+    misc.RTC.khi_eff = khi_eff_QPM(misc.IN.cry, z[ii], misc.RTC.period)
     A_komp = RK4_M(diffegy_conv, dz, z[ii], A_komp, misc)
     effic[ii] = sum(abs.(A_komp.ATHz) .^ 2 .* FI) / pF
     NcArray[ii] = 0
