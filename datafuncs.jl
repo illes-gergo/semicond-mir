@@ -14,7 +14,7 @@ function printInputs2Console(inp::userInputs)
   elseif inp.cry == 0
     material = "LN"
   else
-    error("Ismeretlen kristály anyag")
+    error("Crystal not found!")
   end
   outstring *= "Crystal: $(material)\n"
   outstring *= "Temperature: $(inp.T) K\n\n"
@@ -37,7 +37,7 @@ function printInputs2Console(inp::userInputs)
   elseif inp.cry == 0
     material = "LN"
   else
-    error("Ismeretlen kristály anyag")
+    error("Crystal not found!")
   end
   outstring *= "Crystal: $(material)\n"
   outstring *= "Temperature: $(inp.T) K\n\n"
