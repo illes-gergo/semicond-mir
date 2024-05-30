@@ -17,10 +17,10 @@ end =#
 
 @kwdef struct userInputs
   lambda0::Float64 = 810e-9
-  tau::Float64 = 1000e-15
+  tau::Float64 = 500e-15
   I0::Float64 = 100e13
   dz::Float64 = 1e-6 # default is 5e-6
-  nu0::Float64 = 0.16e12
+  nu0::Float64 = 0.5e12
   z_end::Float64 = 1.2e-3
   DB_Name::String = "2-cycle.2"
   DifferentialEquationSum::Int = 0
