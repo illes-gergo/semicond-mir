@@ -276,7 +276,7 @@ function n2value(cry)
   elseif cry == 3
     n2_ = 1.1e-17 # https://www.nature.com/articles/s41566-019-0537-9 
   elseif cry == 0
-    n2_ = 0
+    n2_ = 1e-19 # from Ravi et al 2014
   end
   return n2_
 end

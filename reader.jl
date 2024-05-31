@@ -7,32 +7,34 @@ function readData(s::String)
   return SimData(file=FID)
 end
 
-function printInputs2Console(inp::userInputs)
-  outstring = "Input Parameters:\n"
-  outstring *= "Pump Wavelength: $(inp.lambda0*1e6) μm\n"
-  outstring *= "Full-Width at Half-Maximum: $(inp.tau*1e12) ps\n"
-  outstring *= "Peak Intensity: $(inp.I0*1e-13) GW/cm^2\n"
-  outstring *= "THz Matched Frequency: $(inp.nu0*1e-12) THz\n"
-  outstring *= "Crystal Length: $(inp.z_end*1e3) mm\n"
-  if inp.cry == 3
+function printInputs2Console(file)
+  DB_Name = read(file["inp/DB_Name"]) * "-exports"
+  checkpath(DB_Name)
+
+  outstring = "Simulation Parameters:\n"
+  outstring *= "Pump Wavelength: $(read(file["inp/lambda0"])*1e6) μm\n"
+  outstring *= "Full-Width at Half Maximum Pulse Duration: $(read(file["inp/tau"])*1e12) ps\n"
+  outstring *= "Peak Intensity: $(read(file["inp/I0"])*1e-13) GW/cm^2\n"
+  outstring *= "THz Matched Frequency: $(read(file["inp/nu0"])*1e-12) THz\n"
+  outstring *= "Pulsse-Front-Tilt Angle: $(rad2deg(read(file["gamma"])))\n"
+  outstring *= "Crystal Length: $(read(file["inp/z_end"])*1e3) mm\n"
+  matchoice = read(file["/inp/cry"])
+  if matchoice == 3
     material = "GaP"
-  elseif inp.cry == 4
+  elseif matchoice == 4
     material = "GaAs"
-  elseif inp.cry == 0
+  elseif matchoice == 0
     material = "LN"
   else
     error("Crystal not found!")
   end
   outstring *= "Crystal: $(material)\n"
-  outstring *= "Temperature: $(inp.T) K\n\n"
-  
-  outstring *= "Run Parameters:\n"
-  outstring *= "Multi-photon Absorption Order: $(inp.MPAorder)\n"
-  outstring *= "Database Filename: \"$(inp.DB_Name)\"\n"
-  outstring *= "Spatial Step Length (dz): $(inp.dz)\n"
-  outstring *= "Number of Points Recorded: $(inp.N)\n\n"
+  outstring *= "Temperature: $(read(file["inp/T"])) K\n\n"
 
-  print(outstring)
+  outstring *= "Run Parameters:\n"
+  outstring *= "Database Filename: \"$(read(file["inp/DB_Name"]))\"\n"
+  outstring *= "Spatial Step Length: $(read(file["inp/dz"])*1e6) μm\n"
+  outstring *= "Number of Points Recorded: $(read(file["inp/N"])) darab\n\n"
   return nothing
 end
 
@@ -92,13 +94,13 @@ function printInputs2File(file)
   DB_Name = read(file["inp/DB_Name"]) * "-exports"
   checkpath(DB_Name)
 
-  outstring = "Bemeneti paraméterek:\n"
-  outstring *= "Központi hullámhossz: $(read(file["inp/lambda0"])*1e6) μm\n"
-  outstring *= "Intenzitás félértékszélesség: $(read(file["inp/tau"])*1e12) ps\n"
-  outstring *= "Csúcsintenzitás: $(read(file["inp/I0"])*1e-13) GW/cm^2\n"
-  outstring *= "Sebességillesztési frekvencia: $(read(file["inp/nu0"])*1e-12) THz\n"
-  outstring *= "Sebességillesztés szöge: $(rad2deg(read(file["gamma"])))\n"
-  outstring *= "Kristály teljes hossza: $(read(file["inp/z_end"])*1e3) mm\n"
+  outstring = "Simulation Parameters:\n"
+  outstring *= "Pump Wavelength: $(read(file["inp/lambda0"])*1e6) μm\n"
+  outstring *= "Full-Width at Half Maximum Pulse Duration: $(read(file["inp/tau"])*1e12) ps\n"
+  outstring *= "Peak Intensity: $(read(file["inp/I0"])*1e-13) GW/cm^2\n"
+  outstring *= "THz Matched Frequency: $(read(file["inp/nu0"])*1e-12) THz\n"
+  outstring *= "Pulsse-Front-Tilt Angle: $(rad2deg(read(file["gamma"])))\n"
+  outstring *= "Crystal Length: $(read(file["inp/z_end"])*1e3) mm\n"
   matchoice = read(file["/inp/cry"])
   if matchoice == 3
     material = "GaP"
@@ -107,15 +109,15 @@ function printInputs2File(file)
   elseif matchoice == 0
     material = "LN"
   else
-    error("Ismeretlen kristály anyag")
+    error("Crystal not found!")
   end
-  outstring *= "Kristály anyaga: $(material)\n"
-  outstring *= "Hőmérséklet: $(read(file["inp/T"])) K\n\n"
+  outstring *= "Crystal: $(material)\n"
+  outstring *= "Temperature: $(read(file["inp/T"])) K\n\n"
 
-  outstring *= "Futtatási paraméterek:\n"
-  outstring *= "Adatbázis eredeti neve: \"$(read(file["inp/DB_Name"]))\"\n"
-  outstring *= "Térbeli lépésköz: $(read(file["inp/dz"])*1e6) μm\n"
-  outstring *= "Felvett adatpontok száma: $(read(file["inp/N"])) darab\n\n"
+  outstring *= "Run Parameters:\n"
+  outstring *= "Database Filename: \"$(read(file["inp/DB_Name"]))\"\n"
+  outstring *= "Spatial Step Length: $(read(file["inp/dz"])*1e6) μm\n"
+  outstring *= "Number of Points Recorded: $(read(file["inp/N"])) darab\n\n"  
   write(DB_Name * "/inputs.txt", outstring)
   return nothing
 end

@@ -22,7 +22,7 @@ end =#
   dz::Float64 = 5e-6 # default is 5e-6
   nu0::Float64 = 0.67e12
   z_end::Float64 = 1.2e-3
-  DB_Name::String = "meeting-n2" # "./results/param_$(tau)" # or whatever parameter  
+  DB_Name::String = "first-results" # "./results/param_$(tau)" # or whatever parameter  
   DifferentialEquationSum::Int = 0
   cry::Int = 0 # 0 ==> LN , 3 ==> GaAs , 4 ==> GaP
   T::Float64 = 300
