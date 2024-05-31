@@ -29,7 +29,8 @@ function printInputs2Console(file)
     error("Crystal not found!")
   end
   outstring *= "Crystal: $(material)\n"
-  outstring *= "Temperature: $(read(file["inp/T"])) K\n\n"
+  outstring *= "Temperature: $(read(file["inp/T"])) K\n"
+  outstring *= "Domain Period: $(read(file["period"])*1e6) um \n\n"
 
   outstring *= "Run Parameters:\n"
   outstring *= "Database Filename: \"$(read(file["inp/DB_Name"]))\"\n"

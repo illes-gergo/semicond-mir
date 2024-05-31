@@ -122,7 +122,7 @@ function runcalc(inputs::userInputs= userInputs())
     print("$(ii) / $(length(z)) \r")
     flush(stdout)
   end
-  DataBaseEnder(FID, z, t, nu, effic, NcArray, inputs, zsave, gamma)
+  DataBaseEnder(FID, z, t, nu, effic, NcArray, inputs, zsave, gamma, period)
   close(FID)
 
   #display(plot(z, effic))

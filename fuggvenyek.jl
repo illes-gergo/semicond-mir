@@ -108,10 +108,10 @@ function nTHzo(omega, T, cry, Nc=0)
     C = 2.82e-3 .* 1e12 .^ -4
     nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
     # for T = 100K
-    A = 4.71
-    B = 2.42e-2 .* 1e12 .^ -2
-    C = 1.25e-3 .* 1e12 .^ -4
-    nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
+    # A = 4.71
+    # B = 2.42e-2 .* 1e12 .^ -2
+    # C = 1.25e-3 .* 1e12 .^ -4
+    # nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
   end
   return nTHz
 end
@@ -361,7 +361,7 @@ function DataBaseWriter(FID, saveCounter, Aop, Iop, ATHz, ETHz)
   FID[string(saveCounter)*"/ETHz"] = collect(ETHz)
 end
 
-function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave, gamma)
+function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave, gamma, period)
   FID["z"] = collect((z))
   FID["effic"] = collect((effic))
   FID["Nc"] = collect((Nc))
@@ -369,6 +369,7 @@ function DataBaseEnder(FID, z, t, nu, effic, Nc, inp::userInputs, zsave, gamma)
   FID["nu"] = collect((nu))
   FID["zsave"] = collect((zsave))
   FID["gamma"] = collect((gamma))
+  FID["period"] = collect((period))
 
   # Saving user's inputs for extra data
 
