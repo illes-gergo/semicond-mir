@@ -107,6 +107,11 @@ function nTHzo(omega, T, cry, Nc=0)
     B = 2.07e-2 .* 1e12 .^ -2
     C = 2.82e-3 .* 1e12 .^ -4
     nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
+    # for T = 100K
+    A = 4.71
+    B = 2.42e-2 .* 1e12 .^ -2
+    C = 1.25e-3 .* 1e12 .^ -4
+    nTHz = A .+ B .* nu .^ 2 .+ C .* nu .^ 4
   end
   return nTHz
 end

@@ -126,7 +126,7 @@ function runcalc(inputs::userInputs= userInputs())
   close(FID)
 
   #display(plot(z, effic))
-  println("Végeztem!")
+  println("Done!")
   return nothing
 end
 

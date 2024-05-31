@@ -35,6 +35,7 @@ function printInputs2Console(file)
   outstring *= "Database Filename: \"$(read(file["inp/DB_Name"]))\"\n"
   outstring *= "Spatial Step Length: $(read(file["inp/dz"])*1e6) μm\n"
   outstring *= "Number of Points Recorded: $(read(file["inp/N"])) darab\n\n"
+  println(outstring)
   return nothing
 end
 
